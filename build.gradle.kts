@@ -12,7 +12,9 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    testImplementation("io.mockk:mockk-jvm:1.14.8-SNAPSHOT")
+    testImplementation("io.mockk:mockk-jvm:1.14.10-SNAPSHOT")
+//    testImplementation("io.mockk:mockk-jvm:1.14.9")
+//    testImplementation("io.mockk:mockk-jvm:1.14.8-SNAPSHOT")
 //    testImplementation("io.mockk:mockk-jvm:1.14.7")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
