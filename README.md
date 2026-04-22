@@ -154,10 +154,10 @@ repositories {
 
 dependencies {
     // Choose one:
-    testImplementation("io.mockk:mockk-jvm:1.14.10-issue1523-SNAPSHOT")  // Fixed (from mavenLocal)
+    testImplementation("io.mockk:mockk-jvm:1.14.10-SNAPSHOT")  // Fixed (from mavenLocal)
     // testImplementation("io.mockk:mockk-jvm:1.14.9")                   // Bug (from mavenCentral)
 
-    implementation("io.mockk:mockk-jvm:1.14.10-issue1523-SNAPSHOT")      // For benchmarks
+    implementation("io.mockk:mockk-jvm:1.14.10-SNAPSHOT")      // For benchmarks
     // implementation("io.mockk:mockk-jvm:1.14.9")
 }
 ```
