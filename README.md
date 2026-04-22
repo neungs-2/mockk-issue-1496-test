@@ -78,3 +78,86 @@ dependencies {
     // testImplementation("io.mockk:mockk-jvm:1.14.7")        // Bug (from mavenCentral)
 }
 ```
+
+# MockK Issue #1523 - Interface Dependency Order Resolution Test
+
+Test cases and benchmarks for [MockK Issue #1523](https://github.com/mockk/mockk/issues/1523).
+
+## Issue Summary
+
+**Problem:** MockK's `useDependencyOrder = true` resolves `@InjectMockKs` dependencies by concrete class relationships, but misses dependencies declared as an interface when another `@InjectMockKs` field provides an implementation.
+
+```kotlin
+class A(val b: B)  // A depends on interface B
+interface B
+class C : B        // C is the injectable implementation
+
+class TestClass {
+    @InjectMockKs lateinit var a: A
+    @InjectMockKs lateinit var c: C
+}
+
+MockKAnnotations.init(this, useDependencyOrder = true)
+
+// Expected: a.b === c
+// Bug: C is not considered as a dependency candidate for interface B
+```
+
+**Solution:** Dependency ordering should consider assignable types, so an injected implementation can satisfy a constructor dependency declared as its interface or supertype.
+
+## Test Results
+
+| MockK Version | Result |
+|---------------|--------|
+| 1.14.9 (bug) | FAILED |
+| 1.14.10-issue1523-SNAPSHOT (fix) | PASSED |
+
+## Test Cases
+
+The test has **constructor dependency type ≠ injected field concrete type** to reproduce the bug:
+
+| # | Test | Dependency | Injectable Field | Bug |
+|---|------|------------|------------------|-----|
+| 1 | Interface implementation (A→B, C:B) | `A` needs `B` | `c: C` | ✅ |
+
+## Running Tests
+
+```bash
+# Test with bug (1.14.9) - Issue1523Test fails
+./gradlew test --tests com.example.demo.Issue1523Test
+
+# Test with fix (1.14.10-issue1523-SNAPSHOT) - Issue1523Test passes
+# Edit build.gradle.kts to use 1.14.10-issue1523-SNAPSHOT + mavenLocal()
+./gradlew test --tests com.example.demo.Issue1523Test
+```
+
+## Running Benchmarks
+
+`Issue1523BenchmarkTest` compares initialization throughput with and without dependency ordering across independent, wide, linear, diamond, interface, and nested-interface graphs.
+
+```bash
+./gradlew issue1523Benchmark
+
+# Optional: pass custom JMH arguments
+./gradlew issue1523Benchmark -Pissue1523BenchmarkArgs="com.example.demo.Issue1523BenchmarkTest.initWithDependencyOrderInterface5 -wi 1 -i 3 -r 10s -w 10s -f 1"
+```
+
+## Switching MockK Version
+
+In `build.gradle.kts`:
+
+```kotlin
+repositories {
+    mavenLocal()  // Required for SNAPSHOT from local Maven
+    mavenCentral()
+}
+
+dependencies {
+    // Choose one:
+    testImplementation("io.mockk:mockk-jvm:1.14.10-issue1523-SNAPSHOT")  // Fixed (from mavenLocal)
+    // testImplementation("io.mockk:mockk-jvm:1.14.9")                   // Bug (from mavenCentral)
+
+    implementation("io.mockk:mockk-jvm:1.14.10-issue1523-SNAPSHOT")      // For benchmarks
+    // implementation("io.mockk:mockk-jvm:1.14.9")
+}
+```
