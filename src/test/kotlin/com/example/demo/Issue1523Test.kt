@@ -23,7 +23,7 @@ class Issue1523Test {
 
     @Test
     fun `useDependencyOrder resolves dependency through implemented interface`() {
-        MockKAnnotations.init(this)
+        MockKAnnotations.init(this, useDependencyOrder = true)
 
         assertSame(c, a.b)
     }
